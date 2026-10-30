@@ -1,0 +1,66 @@
+{
+  "versions": [
+    {
+      "id": "lan",
+      "nom": "Notre version PS2 (LAN)",
+      "depot": "nynjardin/burnout3-pc",
+      "plateforme": "PS2",
+      "disque": "ps2_us",
+      "fichier": "^Burnout3-PC-.*-windows-x64\\.zip$",
+      "exe": "burnout3.exe",
+      "apports": [
+        "Portage PS2 recompilé (base : burnout3-pc de l'amont)",
+        "Jeu en LAN sans serveur : salon, recherche des parties, colonne PING",
+        "60 images/s, 16:9, pack de textures, PC SETTINGS",
+        "Mods (sans trafic, crash breaker, miroir), série EXTRA, caméra orbitale, écran partagé"
+      ],
+      "remarque": "Aucune version publiée pour l'instant."
+    },
+    {
+      "id": "amont",
+      "nom": "burnout3-pc (amont, PS2)",
+      "depot": "danielgomesvieira2000/burnout3-pc",
+      "plateforme": "PS2",
+      "disque": "ps2_us",
+      "fichier": "^Burnout3-PC-.*-windows-x64\\.zip$",
+      "exe": "burnout3.exe",
+      "apports": [
+        "Portage PS2 recompilé, version de référence",
+        "60 images/s, 16:9, pack de textures, PC SETTINGS",
+        "Mods, série EXTRA, caméra orbitale, écran partagé"
+      ],
+      "remarque": "Préversions (alpha)."
+    },
+    {
+      "id": "takedawn",
+      "nom": "takedawn (Xbox)",
+      "depot": "xenophobentx/takedawn",
+      "plateforme": "Xbox",
+      "disque": "xbox_us",
+      "fichier": "",
+      "exe": "",
+      "apports": [
+        "Portage de la version Xbox recompilée (disque Xbox US nécessaire)",
+        "60 images/s et plus, rendu jusqu'à 4x, 16:9 et ultra-large, HDR",
+        "Windows, Linux, Mac, Android",
+        "Prévu en 0.2.2 : en ligne et LAN, disques PAL et langues, mods"
+      ],
+      "remarque": "Sous Windows, un installateur seulement : pas encore portable (prévu en 0.2.2). Le lanceur ouvre sa page."
+    },
+    {
+      "id": "burn3",
+      "nom": "Burn3 (PS2)",
+      "depot": "UwUCammie/Burn3",
+      "plateforme": "PS2",
+      "disque": "ps2_us",
+      "fichier": "",
+      "exe": "",
+      "apports": [
+        "Moteur PS2 interprété avec code traduit à l'avance",
+        "Rendu Vulkan jusqu'à 6x, FSR 3.1, options PC (F10)",
+        "Jeu en ligne par un serveur central (versions officielles seulement)"
+      ],
+      "remarque": "Ses versions GitHub n'ont aucun fichier à télécharger. Le lanceur ouvre sa page."
+    }
+  ]
+}

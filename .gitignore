@@ -1,0 +1,8 @@
+bin/
+obj/
+.vs/
+*.user
+# A place to try the launcher: its versions/ and settings are a player's, never committed.
+essai/
+versions/
+lanceur.json
