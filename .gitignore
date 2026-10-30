@@ -6,3 +6,4 @@ obj/
 essai/
 versions/
 lanceur.json
+.lanceur-webview/

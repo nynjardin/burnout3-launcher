@@ -16,6 +16,7 @@
 <n'importe quel dossier>/
   Lanceur.exe
   lanceur.json          réglages : chemins des disques, dernière version choisie
+  .lanceur-webview/     données du moteur web de la fenêtre
   catalogue.json        (facultatif) remplace le catalogue intégré à l'exe
   versions/
     lan/  amont/  ...   une version par dossier, avec ses sauvegardes et caches
@@ -25,9 +26,18 @@ Pas de registre, pas de droits d'administrateur, rien hors de ce dossier.
 
 ## Choix techniques
 
-- **C# / .NET Framework 4.8 / WinForms** : livré avec Windows 10 et 11, donc un seul exe sans
-  dépendance. Aucun paquet NuGet : JSON par `JavaScriptSerializer` (System.Web.Extensions),
-  zip par `System.IO.Compression`, HTTP par `HttpClient` (TLS 1.2 forcé).
+- **Tauri 2 (Rust + HTML/CSS/JS)** — choix de l'utilisateur (2026-10-30), à la place d'un
+  premier squelette C# WinForms : une interface soignée en HTML, un seul exe de quelques Mo,
+  le même code pour Linux et Mac plus tard.
+  - Rust (`src-tauri/`) : `reqwest` (rustls) pour GitHub et les téléchargements, `zip`,
+    `rfd` (choix d'un fichier), `open` (dossiers, pages).
+  - Page (`ui/`) : HTML/CSS/JS sans outil de construction ; appelle les commandes Rust
+    (`state`, `releases`, `install`, `play`, `choose_disc`, `remember`, `open_folder`,
+    `open_page`) ; l'avancement d'une installation arrive en événements `progression`.
+  - **Portable** : la fenêtre est créée dans le code avec `data_directory` =
+    `.lanceur-webview/` à côté de l'exe (sinon WebView2 écrirait dans `%LOCALAPPDATA%`).
+  - Windows : il faut le moteur WebView2 (présent sur Windows 11 et les Windows 10 à jour).
+    Linux : WebKitGTK du système (ou un AppImage). Mac : « Ouvrir quand même » sans signature.
 - **GitHub sans compte** : `GET /repos/<dépôt>/releases` (60 requêtes/heure par connexion :
   une par version à l'ouverture suffit). En-tête `User-Agent` obligatoire.
 - **Catalogue** : un `catalogue.json` intégré à l'exe ; un `catalogue.json` posé à côté le

@@ -5,7 +5,7 @@
 | Sujet | État |
 |---|---|
 | Dossier, dépôt git local, doc | ✅ 2026-10-30 |
-| Squelette : catalogue, fiches, versions GitHub, installer/mettre à jour un zip, jouer | ✅ compile ; installation de l'amont `v0.7.2-alpha` vérifiée ; fenêtre ouverte. **Jouer et l'affichage pas encore vus par l'utilisateur** |
+| Lanceur Tauri : catalogue, fiches, versions GitHub, installer/mettre à jour un zip, jouer | ✅ compile sans avertissement (exe 9,3 Mo) ; installation de l'amont par l'interface vérifiée (clic simulé + capture) ; rien écrit hors du dossier. **Jouer et l'allure pas encore vus par l'utilisateur** |
 | Publication de nos versions (Releases du fork) | ⏸ décision de l'utilisateur |
 | Dépôt GitHub du lanceur | ⏸ décision de l'utilisateur |
 | Préparation des shaders depuis le lanceur | ⏳ demande d'abord une option dans le jeu ([contrat-jeu.md](contrat-jeu.md)) |
@@ -20,7 +20,7 @@
 ## ▶ REPRENDRE ICI
 
 1. **Faire essayer le lanceur à l'utilisateur** : `essai/Lanceur.exe` (après
-   `dotnet build`, recopier `src/Lanceur/bin/Release/net48/Lanceur.exe` dans `essai/`).
+   `cargo build --release` dans `src-tauri/`, recopier `target/release/Lanceur.exe` dans `essai/`).
    Dans `essai/` : l'amont `v0.7.2-alpha` est déjà installé (`versions/amont/`), le disque PS2
    réglé sur `I:\Projets\Recomp\Burnout 3\Burnout 3 - Takedown (USA).iso` (`lanceur.json`).
    À vérifier avec lui : l'allure de la fenêtre, **Jouer** (premier lancement long : shaders),

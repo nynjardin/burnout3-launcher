@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lanceur Burnout 3</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">B3</div>
+    <div class="brand">
+      <strong>Lanceur Burnout 3</strong>
+      <span>Choisis ta version de Takedown</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="versions" aria-label="Versions du jeu"></nav>
+
+    <main class="detail" id="detail">
+      <section class="hero">
+        <div class="hero-text">
+          <div class="chips"><span class="chip platform" id="platform"></span><span class="chip" id="repo"></span></div>
+          <h1 id="title"></h1>
+          <div class="facts">
+            <div><span class="label">Installée</span><span id="installed">—</span></div>
+            <div><span class="label">Dernière</span><span id="latest">…</span></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="install"></button>
+          <button class="play" id="play">▶ Jouer</button>
+          <div class="secondary">
+            <button class="ghost" id="folder">Dossier</button>
+            <button class="ghost" id="page">Page du projet ↗</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="progress" id="progress" hidden><div class="bar" id="bar"></div><span id="percent"></span></div>
+      <div class="message" id="message" hidden></div>
+
+      <section class="panel">
+        <h2>Ce qu'elle apporte</h2>
+        <ul class="features" id="features"></ul>
+        <p class="remark" id="remark" hidden></p>
+      </section>
+
+      <section class="panel">
+        <h2>Notes de version</h2>
+        <div id="notes" class="notes"></div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="discs">
+    <div class="disc">
+      <span class="label">Disque PS2 US</span>
+      <span class="path" id="disc-ps2_us">aucun</span>
+      <button class="ghost" data-disc="ps2_us">Choisir…</button>
+    </div>
+    <div class="disc">
+      <span class="label">Disque Xbox US</span>
+      <span class="path" id="disc-xbox_us">aucun</span>
+      <button class="ghost" data-disc="xbox_us">Choisir…</button>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

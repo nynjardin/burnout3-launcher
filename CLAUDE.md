@@ -47,15 +47,18 @@ Resuming: the « REPRENDRE ICI » section of [`docs/etat-du-projet.md`](docs/eta
 
 ## Build
 
-C# on .NET Framework 4.8 (shipped with Windows 10/11, so the exe needs nothing installed),
-WinForms, no NuGet package. With the .NET SDK (8 is installed here):
+**Tauri 2**: Rust in `src-tauri/` (GitHub, downloads, zips, starting a version), the page in
+`ui/` (plain HTML/CSS/JS, no bundler, `window.__TAURI__` via `withGlobalTauri`). No Tauri CLI
+needed. Rust is installed but not on the shell's PATH: use `%USERPROFILE%\.cargoin\cargo.exe`.
 
 ```
-dotnet build src/Lanceur/Lanceur.csproj -c Release
+cd src-tauri
+cargo build --release
 ```
 
-Output: `src/Lanceur/bin/Release/net48/Lanceur.exe`. Try it in a scratch folder (`essai/`,
-ignored by git), never in the game project's folder.
+Output: `src-tauri/target/release/Lanceur.exe` (one file, the page embedded). Try it in a
+scratch folder (`essai/`, ignored by git), never in the game project's folder. Windows needs the
+WebView2 runtime (present on Windows 11 and updated Windows 10).
 
 ## Keeping the docs alive
 

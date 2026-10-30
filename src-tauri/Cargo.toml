@@ -1,0 +1,33 @@
+[package]
+name = "lanceur"
+version = "0.1.0"
+edition = "2021"
+description = "Portable launcher for the PC versions of Burnout 3: Takedown"
+
+[[bin]]
+name = "Lanceur"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+regex = "1"
+rfd = "0.15"
+open = "5"
+
+[features]
+# Serves the embedded ui/ (without it, a release build would look for a dev server).
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

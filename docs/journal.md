@@ -5,6 +5,20 @@ dans les autres fichiers de `docs/`.
 
 ---
 
+suite 2 (bascule en Tauri — 2026-10-30)
+
+- L'utilisateur trouve WinForms laid et Windows seulement : bascule vers **Tauri 2** (Rust +
+  HTML/JS). Rust 1.99.1 déjà installé (hors PATH du shell), WebView2 154 présent.
+- Code C# supprimé (il reste dans l'historique git, `8dbd6c4`) ; `catalogue.json` repris tel quel.
+- Rust : catalogue, réglages, GitHub, installation (même logique : dossier de tête enlevé,
+  fichiers du zip seulement, étiquette en dernier), commandes. Page : thème sombre, versions à
+  gauche, fiche à droite, notes de version (petit Markdown), disques en bas.
+- Première compilation 5 min (dépendances), ensuite ≈ 2,5 min ; exe 9,3 Mo, sans avertissement.
+- Vérifié par captures de la fenêtre : affichage, versions GitHub lues ; installation de l'amont
+  par un clic simulé sur « Installer » (étiquette réécrite, message, bouton « À jour ») ;
+  `.lanceur-webview/` créé à côté de l'exe, rien dans `%LOCALAPPDATA%` / `%APPDATA%`.
+- Retouches : boutons secondaires sur une ligne, « À jour » désactivé en gris.
+
 suite 1 (création — 2026-10-30)
 
 - Projet ouvert à la demande de l'utilisateur : lanceur portable, plusieurs versions du jeu,
