@@ -58,7 +58,7 @@ Pas de registre, pas de droits d'administrateur, rien hors de ce dossier.
 ## Le lanceur se met à jour lui-même — CONFIRMÉ (essai local 2026-11-13)
 
 - Au démarrage, il lit les versions publiées de **son propre dépôt** (champ `lanceur` du
-  catalogue : `depot`, par défaut `nynjardin/burnout3-launcher` — **dépôt créé le 2026-11-13, vide**,
+  catalogue : `depot`, par défaut `nynjardin/burnout3-launcher` — dépôt créé le 2026-11-13, `v0.1.0` publiée,
   décision de l'utilisateur ; `fichier`, par défaut `^Lanceur\.exe$`). Il retient la plus
   haute étiquette **au-dessus de sa propre version** (`version` de `Cargo.toml`, comparaison
   semver : `v0.2.0-beta.1` < `v0.2.0`), préversions comprises, qui porte ce fichier.

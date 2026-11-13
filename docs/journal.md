@@ -21,6 +21,9 @@ suite 5 (le lanceur se met à jour lui-même — 2026-11-13)
   le nouvel exe démarre, `.ancien` supprimé. Compilé sans avertissement.
 - Nom du dépôt choisi par l'utilisateur : **`burnout3-launcher`** (catalogue, défaut Rust, doc) ;
   dépôt public créé à sa demande (public obligatoire : le lanceur lit GitHub sans compte).
+- À sa demande : code poussé (`master` local → `main` du dépôt, remote `origin`) et version
+  **`v0.1.0`** publiée avec `Lanceur.exe` (9 380 352 octets) ; l'API donne bien le fichier et
+  son `digest` SHA-256, identique à l'exe local.
 
 suite 4 (notre première version publiée, vue par le lanceur — 2026-11-13)
 
