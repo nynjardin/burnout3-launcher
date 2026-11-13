@@ -1,24 +1,30 @@
 {
+  "lanceur": {
+    "depot": "nynjardin/burnout3-launcher",
+    "fichier": "^Lanceur\\.exe$"
+  },
   "versions": [
     {
       "id": "lan",
-      "nom": "Notre version PS2 (LAN)",
+      "nom": "LAN edition",
       "depot": "nynjardin/burnout3-pc",
       "plateforme": "PS2",
       "disque": "ps2_us",
       "fichier": "^Burnout3-PC-.*-windows-x64\\.zip$",
       "exe": "burnout3.exe",
+      "ici": true,
       "apports": [
         "Portage PS2 recompilé (base : burnout3-pc de l'amont)",
         "Jeu en LAN sans serveur : salon, recherche des parties, colonne PING",
         "60 images/s, 16:9, pack de textures, PC SETTINGS",
         "Mods (sans trafic, crash breaker, miroir), série EXTRA, caméra orbitale, écran partagé"
       ],
-      "remarque": "Aucune version publiée pour l'instant."
+      "remarque": "Le jeu est celui posé à côté du lanceur (burnout3.exe dans le même dossier). Installer ou Mettre à jour y dépose la dernière version publiée ; sauvegardes et réglages restent. Préversions."
     },
     {
       "id": "amont",
       "nom": "burnout3-pc (amont, PS2)",
+      "active": false,
       "depot": "danielgomesvieira2000/burnout3-pc",
       "plateforme": "PS2",
       "disque": "ps2_us",
@@ -34,6 +40,7 @@
     {
       "id": "takedawn",
       "nom": "takedawn (Xbox)",
+      "active": false,
       "depot": "xenophobentx/takedawn",
       "plateforme": "Xbox",
       "disque": "xbox_us",
@@ -50,6 +57,7 @@
     {
       "id": "burn3",
       "nom": "Burn3 (PS2)",
+      "active": false,
       "depot": "UwUCammie/Burn3",
       "plateforme": "PS2",
       "disque": "ps2_us",

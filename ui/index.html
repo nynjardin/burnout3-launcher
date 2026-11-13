@@ -11,7 +11,11 @@
     <div class="logo">B3</div>
     <div class="brand">
       <strong>Lanceur Burnout 3</strong>
-      <span>Choisis ta version de Takedown</span>
+      <span>Choisis ta version de Takedown <span id="launcher-version"></span></span>
+    </div>
+    <div class="self-update" id="self-update" hidden>
+      <span id="self-update-text"></span>
+      <button class="primary" id="self-update-go">Mettre à jour le lanceur</button>
     </div>
   </header>
 
@@ -24,7 +28,7 @@
           <div class="chips"><span class="chip platform" id="platform"></span><span class="chip" id="repo"></span></div>
           <h1 id="title"></h1>
           <div class="facts">
-            <div><span class="label">Installée</span><span id="installed">—</span></div>
+            <div><span class="label" id="installed-label">Installée</span><span id="installed">—</span></div>
             <div><span class="label">Dernière</span><span id="latest">…</span></div>
           </div>
         </div>

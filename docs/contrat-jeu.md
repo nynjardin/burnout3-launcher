@@ -5,8 +5,11 @@ Changer une de ces règles demande de changer **les deux** projets.
 
 ## Ce qui existe déjà dans le jeu — CONFIRMÉ (code du 2026-10-30)
 
-- **Le paquet** : `tools/package.py` (jeu) fait `Burnout3-PC-<version>-windows-x64.zip`, un
-  dossier `Burnout3-PC-<version>/` dedans. Le lanceur enlève ce premier dossier en extrayant.
+- **Le paquet** : `tools/package.py` (jeu) fait `Burnout3-PC-<version>-windows-x64.zip`. Chez
+  l'amont, un dossier `Burnout3-PC-<version>/` dedans ; dans notre LAN edition (depuis
+  `0.8.0-lan.1`, option `"flat": true` de `game.json`), les fichiers sont **à la racine** du zip.
+  Le lanceur gère les deux : il enlève le premier dossier seulement si toutes les entrées sont
+  dedans (`installation.rs`).
 - **L'exe** : `burnout3.exe` ; sur un processeur sans AVX2, il lance lui-même
   `burnout3-sse4.exe`, à côté.
 - **Sans arguments**, le jeu (`PlayArguments`, `engine/host/src/main.cpp`) :

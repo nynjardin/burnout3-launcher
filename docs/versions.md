@@ -7,8 +7,12 @@ vite : revérifier avant de s'y fier.
 
 - Recompilation statique de la PS2 NTSC-U (`SLUS-21050`), l'amont plus notre LAN sans serveur
   (salon, découverte, colonne PING…). Disque : l'ISO PS2 US.
-- **Aucune version publiée** sur le fork (CONFIRMÉ). Publier = décision de l'utilisateur.
-- Paquet prévu : le même que l'amont (voir [contrat-jeu.md](contrat-jeu.md)).
+- **Publiée** (CONFIRMÉ 2026-11-13) : préversion `v0.8.0-lan.1` « LAN edition 0.8.0-lan.1 »,
+  fichier `Burnout3-PC-0.8.0-lan.1-windows-x64.zip` (45 Mo) : `burnout3.exe`,
+  `burnout3-sse4.exe`, `README.txt`, `THIRD-PARTY-NOTICES.txt`, `texture pack/README.txt`,
+  `custom_songs/README.txt` — **à la racine du zip**, sans dossier englobant (le lanceur accepte
+  les deux). Base : l'amont 0.8.0-alpha.
+- Paquet : le même que l'amont (voir [contrat-jeu.md](contrat-jeu.md)).
 
 ## L'amont (PS2) — `danielgomesvieira2000/burnout3-pc`
 

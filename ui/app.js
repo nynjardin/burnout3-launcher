@@ -9,6 +9,8 @@ let chosen = null;             // the version id shown
 const releases = {};           // id -> [release] once GitHub answered
 const errors = {};             // id -> why it did not
 let busy = null;               // the version id being installed
+let launcherUpdate = null;     // { tag, notes, prerelease } when a newer launcher exists
+let updatingLauncher = false;
 
 const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const date = (iso) => (iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "");
@@ -25,10 +27,11 @@ function assetOf(v, release) {
 // What the version's card shows as its status, and how.
 function statusOf(v) {
   const last = latest(v.id);
+  if (!v.active) return { text: "Bientôt", kind: "page" };
+  if (v.present && last && v.installed !== last.tag && assetOf(v, last)) return { text: "Mise à jour", kind: "update" };
+  if (v.present) return { text: v.ici ? "Présente" : "Installée", kind: "ok" };
   if (!v.installable) return { text: "Page seulement", kind: "page" };
-  if (v.installed && last && v.installed !== last.tag && assetOf(v, last)) return { text: "Mise à jour", kind: "update" };
-  if (v.installed) return { text: "Installée", kind: "ok" };
-  return { text: "Non installée", kind: "page" };
+  return { text: v.ici ? "Introuvable" : "Non installée", kind: "page" };
 }
 
 // A small Markdown: headings, lists, bold, code, links (as text).
@@ -61,7 +64,9 @@ function renderList() {
   for (const v of state.versions) {
     const s = statusOf(v);
     const button = document.createElement("button");
-    button.className = "version" + (v.id === chosen ? " active" : "");
+    button.className = "version" + (v.id === chosen ? " active" : "") + (v.active ? "" : " off");
+    button.disabled = !v.active;
+    if (!v.active) button.title = "Pas proposée pour l'instant";
     button.innerHTML = `
       <span class="name">${escapeHtml(v.nom)}</span>
       <span class="row">
@@ -83,7 +88,8 @@ function renderDetail() {
   $("platform").textContent = v.plateforme;
   $("platform").className = "chip platform " + v.plateforme.toLowerCase();
   $("repo").textContent = "github.com/" + v.depot;
-  $("installed").textContent = v.installed || "non";
+  $("installed-label").textContent = v.ici ? "Dans ce dossier" : "Installée";
+  $("installed").textContent = v.installed || (v.present ? "oui (version inconnue)" : "non");
   if (last) $("latest").textContent = `${last.tag}${last.prerelease ? " · préversion" : ""} · ${date(last.published)}`;
   else if (errors[v.id]) $("latest").textContent = "GitHub ne répond pas";
   else if (releases[v.id]) $("latest").textContent = "aucune version publiée";
@@ -95,11 +101,12 @@ function renderDetail() {
     install.disabled = false;
     install.onclick = () => invoke("open_page", { id: v.id });
   } else {
-    install.textContent = !v.installed ? "Installer" : last && v.installed === last.tag ? "À jour" : "Mettre à jour";
-    install.disabled = !!busy || !asset || (last && v.installed === last.tag);
+    const upToDate = last && v.installed === last.tag;
+    install.textContent = !v.present ? "Installer" : upToDate ? "À jour" : "Mettre à jour";
+    install.disabled = !!busy || updatingLauncher || !asset || upToDate;
     install.onclick = () => installChosen();
   }
-  $("play").disabled = !!busy || !v.installed;
+  $("play").disabled = !!busy || updatingLauncher || !v.present || !v.active;
   $("folder").disabled = !v.installable;
 
   $("features").innerHTML = v.apports.map((a) => `<li>${escapeHtml(a)}</li>`).join("");
@@ -122,15 +129,29 @@ function renderDetail() {
       </article>`).join("");
 }
 
+// Only the discs an offered version plays.
 function renderDiscs() {
   for (const kind of ["ps2_us", "xbox_us"]) {
+    $("disc-" + kind).parentElement.hidden = !state.versions.some((v) => v.active && v.disque === kind);
     const path = state.settings.discs[kind];
-    $("disc-" + kind).textContent = path || "aucun";
+    $("disc-" + kind).textContent = path || "aucun : le jeu utilise le sien";
     $("disc-" + kind).title = path || "";
   }
 }
 
-function render() { renderList(); renderDetail(); renderDiscs(); }
+// The banner offering the launcher's own update.
+function renderSelfUpdate() {
+  const box = $("self-update");
+  box.hidden = !launcherUpdate;
+  if (!launcherUpdate) return;
+  const go = $("self-update-go");
+  go.disabled = !!busy || updatingLauncher;
+  if (!updatingLauncher)
+    $("self-update-text").textContent = `Lanceur ${launcherUpdate.tag}${launcherUpdate.prerelease ? " (préversion)" : ""} disponible`;
+  box.title = launcherUpdate.notes || "";
+}
+
+function render() { renderList(); renderDetail(); renderDiscs(); renderSelfUpdate(); }
 
 function message(text, kind) {
   const box = $("message");
@@ -157,6 +178,7 @@ async function installChosen() {
   render();
   try {
     v.installed = await invoke("install", { id: v.id, tag: last.tag });
+    v.present = true;
     message(`${v.nom} ${last.tag} est installée.`, "info");
   } catch (e) {
     message("L'installation a échoué : " + e);
@@ -189,14 +211,36 @@ for (const button of document.querySelectorAll("[data-disc]"))
     if (path) { state.settings.discs[kind] = path; renderDiscs(); }
   };
 
-listen("progression", (event) => { if (event.payload.id === busy) setProgress(event.payload.percent); });
+$("self-update-go").onclick = async () => {
+  updatingLauncher = true;
+  $("self-update-text").textContent = "Téléchargement du lanceur… 0 %";
+  render();
+  try {
+    await invoke("update_launcher");   // the launcher restarts itself
+    $("self-update-text").textContent = "Redémarrage…";
+  } catch (e) {
+    updatingLauncher = false;
+    message("La mise à jour du lanceur a échoué : " + e);
+    render();
+  }
+};
+
+listen("progression", (event) => {
+  const { id, percent } = event.payload;
+  if (id === "lanceur") $("self-update-text").textContent = `Téléchargement du lanceur… ${percent} %`;
+  else if (id === busy) setProgress(percent);
+});
 
 async function start() {
   state = await invoke("state");
-  chosen = state.settings.selected && version(state.settings.selected) ? state.settings.selected : state.versions[0]?.id;
+  $("launcher-version").textContent = "· v" + state.launcher_version;
+  // The launcher's own update: quiet when there is none or GitHub does not answer.
+  invoke("launcher_update").then((u) => { launcherUpdate = u; render(); }).catch(() => {});
+  const offered = state.versions.filter((v) => v.active);
+  chosen = offered.some((v) => v.id === state.settings.selected) ? state.settings.selected : offered[0]?.id;
   render();
-  // Each version's releases; the page fills in as GitHub answers.
-  await Promise.all(state.versions.map(async (v) => {
+  // Each offered version's releases; the page fills in as GitHub answers.
+  await Promise.all(offered.map(async (v) => {
     try { releases[v.id] = await invoke("releases", { id: v.id }); }
     catch (e) { errors[v.id] = String(e); }
     render();

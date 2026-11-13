@@ -5,6 +5,52 @@ dans les autres fichiers de `docs/`.
 
 ---
 
+suite 5 (le lanceur se met à jour lui-même — 2026-11-13)
+
+- Demande de l'utilisateur : un « autoupdater » pour le lanceur.
+- Choix (sans dépôt du lanceur pour l'instant) : champ `lanceur` du catalogue (`depot`, par
+  défaut `nynjardin/burnout3-launcher` ; `fichier`, `^Lanceur\.exe$`) ; la plus haute étiquette
+  au-dessus de la version de `Cargo.toml` (semver) avec ce fichier ; **bandeau + un clic**
+  plutôt qu'une mise à jour silencieuse. Dépôt absent (404) : rien n'est affiché.
+- Rust : `self_update.rs` (recherche, comparaison semver + test, téléchargement vérifié taille
+  + SHA-256 `digest` de GitHub, échange `Lanceur.exe` ↔ `.ancien`, relance, ménage au
+  démarrage) ; `github.rs` lit `digest` et accepte `LANCEUR_GITHUB_API` pour les essais ;
+  commandes `launcher_update`, `update_launcher` ; la version du lanceur affichée sous son nom.
+- Essai réel dans `essai/maj/` avec un faux serveur local (v0.1.1 = le même exe) : bandeau
+  affiché, clic simulé (port de débogage WebView2) → en moins de 2 s l'ancien processus quitte,
+  le nouvel exe démarre, `.ancien` supprimé. Compilé sans avertissement.
+- Nom du dépôt choisi par l'utilisateur : **`burnout3-launcher`** (catalogue, défaut Rust, doc) ;
+  dépôt public créé à sa demande (public obligatoire : le lanceur lit GitHub sans compte).
+
+suite 4 (notre première version publiée, vue par le lanceur — 2026-11-13)
+
+- L'utilisateur a publié la préversion `v0.8.0-lan.1` sur `nynjardin/burnout3-pc` ; son zip
+  `Burnout3-PC-0.8.0-lan.1-windows-x64.zip` correspond au motif du catalogue, sans changement.
+- Le zip n'a pas de dossier englobant (fichiers à la racine) : `extract` le gère déjà.
+- Essai réel : `Lanceur.exe` seul dans `essai/lan/`, clic « Installer » simulé par le port de
+  débogage de WebView2 (`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`,
+  `Runtime.evaluate`). Avant : « Introuvable », dernière `v0.8.0-lan.1 · préversion`. Après :
+  les six fichiers posés à côté du lanceur, `.lanceur-version` = `v0.8.0-lan.1`, bouton « À jour ».
+- Remarque du catalogue mise à jour (plus « aucune version publiée »).
+
+suite 3 (notre version dans le dossier du lanceur, les autres grisées — 2026-11-13)
+
+- Demande de l'utilisateur : le lanceur sert surtout aux soirées entre amis ; **notre version =
+  le `burnout3.exe` posé à côté du lanceur**, plus besoin d'installer l'amont en plus.
+  **Les autres versions grisées** pour l'instant.
+- Catalogue : deux champs. `ici` (la version vit dans le dossier du lanceur, pas dans
+  `versions/<id>/`) mis sur `lan` ; `active: false` sur amont, takedawn, Burn3.
+- Rust : `present` (l'exe est là, avec ou sans `.lanceur-version`) ; « Jouer » marche dès que
+  l'exe est présent ; le disque choisi dans le lanceur devient **facultatif** (sans lui, le jeu
+  prend celui de son `pc_settings.ini` ou l'image posée à côté) ; une version inactive ne
+  s'installe ni ne se lance ; l'extraction n'écrit jamais `Lanceur*` / `.lanceur*` (le lanceur
+  partage maintenant le dossier du jeu).
+- Page : cartes grisées non cliquables (« Bientôt »), pas de requête GitHub pour elles ; « Dans
+  ce dossier : oui (version inconnue) » quand l'exe est là sans étiquette ; la ligne du disque
+  Xbox cachée (aucune version Xbox proposée).
+- Compilé sans avertissement ; `node --check` sur `app.js`. **Pas encore vu à l'écran.**
+- Notre version renommée **« LAN edition »** (nom affiché, catalogue).
+
 suite 2 (bascule en Tauri — 2026-10-30)
 
 - L'utilisateur trouve WinForms laid et Windows seulement : bascule vers **Tauri 2** (Rust +

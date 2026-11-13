@@ -7,6 +7,7 @@
 mod catalogue;
 mod github;
 mod installation;
+mod self_update;
 mod settings;
 
 use catalogue::{Catalogue, GameVersion};
@@ -21,6 +22,8 @@ struct Launcher {
     folder: PathBuf,
     catalogue: Catalogue,
     settings: Mutex<Settings>,
+    /// The launcher's own update found at start, if any.
+    update: Mutex<Option<self_update::Update>>,
 }
 
 impl Launcher {
@@ -35,6 +38,7 @@ struct VersionState {
     version: GameVersion,
     installable: bool,
     page: String,
+    present: bool,
     installed: Option<String>,
 }
 
@@ -43,6 +47,7 @@ struct LauncherState {
     versions: Vec<VersionState>,
     settings: Settings,
     folder: String,
+    launcher_version: &'static str,
 }
 
 #[derive(Clone, Serialize)]
@@ -58,16 +63,43 @@ fn state(launcher: State<Launcher>) -> LauncherState {
             .catalogue
             .versions
             .iter()
-            .map(|v| VersionState {
-                installable: v.installable(),
-                page: v.page(),
-                installed: Installation::new(&launcher.folder, v).tag(),
-                version: v.clone(),
+            .map(|v| {
+                let installation = Installation::new(&launcher.folder, v);
+                VersionState {
+                    installable: v.installable(),
+                    page: v.page(),
+                    present: installation.present(),
+                    installed: installation.tag(),
+                    version: v.clone(),
+                }
             })
             .collect(),
         settings: launcher.settings.lock().unwrap().clone(),
         folder: launcher.folder.display().to_string(),
+        launcher_version: self_update::CURRENT,
     }
+}
+
+/// A newer launcher on its own repository, or None.
+#[tauri::command]
+async fn launcher_update(launcher: State<'_, Launcher>) -> Result<Option<self_update::Update>, String> {
+    let source = &launcher.catalogue.lanceur;
+    let found = self_update::check(&source.depot, &source.fichier).await?;
+    *launcher.update.lock().unwrap() = found.clone();
+    Ok(found)
+}
+
+/// Replaces the launcher by the update found, starts the new one and quits;
+/// download progress as "progression" events with the id "lanceur".
+#[tauri::command]
+async fn update_launcher(app: tauri::AppHandle, launcher: State<'_, Launcher>) -> Result<(), String> {
+    let update = launcher.update.lock().unwrap().clone().ok_or("Aucune mise à jour du lanceur.")?;
+    self_update::apply(&update, |percent| {
+        let _ = app.emit("progression", Progress { id: "lanceur".into(), percent });
+    })
+    .await?;
+    app.exit(0);
+    Ok(())
 }
 
 #[tauri::command]
@@ -81,6 +113,9 @@ async fn releases(launcher: State<'_, Launcher>, id: String) -> Result<Vec<githu
 #[tauri::command]
 async fn install(app: tauri::AppHandle, launcher: State<'_, Launcher>, id: String, tag: String) -> Result<String, String> {
     let version = launcher.version(&id)?;
+    if !version.installable() {
+        return Err("Cette version n'est pas proposée pour l'instant.".into());
+    }
     let all = github::releases(&version.depot).await?;
     let release = all.iter().find(|r| r.tag == tag).ok_or("Cette version n'est plus sur GitHub.")?;
     let installation = Installation::new(&launcher.folder, version);
@@ -95,9 +130,16 @@ async fn install(app: tauri::AppHandle, launcher: State<'_, Launcher>, id: Strin
 #[tauri::command]
 fn play(launcher: State<Launcher>, id: String) -> Result<(), String> {
     let version = launcher.version(&id)?;
+    if !version.active {
+        return Err("Cette version n'est pas proposée pour l'instant.".into());
+    }
+    let installation = Installation::new(&launcher.folder, version);
+    if !installation.present() {
+        return Err(format!("{} est introuvable dans {}.", version.exe, installation.folder.display()));
+    }
+    // A disc chosen in the launcher wins; without one the game uses its own.
     let settings = launcher.settings.lock().unwrap();
-    let disc = settings.disc(&version.disque).ok_or("Choisis d'abord l'image du disque (en bas de la fenêtre).")?;
-    Installation::new(&launcher.folder, version).play(Some(disc))
+    installation.play(settings.disc(&version.disque))
 }
 
 /// Asks for a disc image of that kind ("ps2_us", "xbox_us"); its path, or None.
@@ -146,12 +188,15 @@ fn main() {
     let launcher = Launcher {
         catalogue: Catalogue::load(&folder),
         settings: Mutex::new(Settings::load(&folder)),
+        update: Mutex::new(None),
         folder: folder.clone(),
     };
+    self_update::clean_up();
     tauri::Builder::default()
         .manage(launcher)
         .invoke_handler(tauri::generate_handler![
-            state, releases, install, play, choose_disc, remember, open_folder, open_page
+            state, releases, install, play, choose_disc, remember, open_folder, open_page,
+            launcher_update, update_launcher
         ])
         .setup(move |app| {
             // The window built here, not in tauri.conf.json: its web view keeps

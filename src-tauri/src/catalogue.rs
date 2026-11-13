@@ -18,15 +18,26 @@ pub struct GameVersion {
     /// The program in the version's folder.
     #[serde(default)]
     pub exe: String,
+    /// The game lives in the launcher's own folder (beside Lanceur.exe), not in
+    /// versions/<id>/: the launcher is dropped into the game folder shared with friends.
+    #[serde(default)]
+    pub ici: bool,
+    /// False: shown greyed out, not offered yet.
+    #[serde(default = "yes")]
+    pub active: bool,
     #[serde(default)]
     pub apports: Vec<String>,
     #[serde(default)]
     pub remarque: String,
 }
 
+fn yes() -> bool {
+    true
+}
+
 impl GameVersion {
     pub fn installable(&self) -> bool {
-        !self.fichier.is_empty() && !self.exe.is_empty()
+        self.active && !self.fichier.is_empty() && !self.exe.is_empty()
     }
 
     pub fn page(&self) -> String {
@@ -34,8 +45,25 @@ impl GameVersion {
     }
 }
 
+/// Where the launcher finds its own releases.
+#[derive(Clone, Serialize, Deserialize)]
+pub struct LauncherSource {
+    /// GitHub "owner/name".
+    pub depot: String,
+    /// Regex of the release asset: the new exe.
+    pub fichier: String,
+}
+
+impl Default for LauncherSource {
+    fn default() -> Self {
+        LauncherSource { depot: "nynjardin/burnout3-launcher".into(), fichier: r"^Lanceur\.exe$".into() }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Catalogue {
+    #[serde(default)]
+    pub lanceur: LauncherSource,
     pub versions: Vec<GameVersion>,
 }
 

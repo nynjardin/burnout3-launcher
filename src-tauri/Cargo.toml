@@ -20,6 +20,7 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 regex = "1"
 rfd = "0.15"
 open = "5"
+sha2 = "0.10"
 
 [features]
 # Serves the embedded ui/ (without it, a release build would look for a dev server).

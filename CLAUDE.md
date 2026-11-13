@@ -25,7 +25,8 @@ Versions it knows (details and current facts: [`docs/versions.md`](docs/versions
 
 - The user runs LAN evenings on several PCs and used LanCommander, which re-downloads the whole
   game for a changed exe: that is why this launcher exists.
-- Our game builds are not published yet; the fork `nynjardin/burnout3-pc` has no Releases.
+- Our game builds are published as prereleases of `nynjardin/burnout3-pc` (first: `v0.8.0-lan.1`,
+  2026-11-13; zip with its files at the root, no enclosing folder).
 - Upstream's first launch after an update compiles Vulkan pipelines for minutes with no sign
   of it (black screen, stalls): players think it crashed. See `docs/contrat-jeu.md`.
 - Windows: never kill every `node.exe` (it kills Claude Code); stop only the launcher's or the

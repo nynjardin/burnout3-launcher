@@ -1,5 +1,6 @@
-//! A version's folder (versions/<id>/ beside the launcher): what is installed
-//! there, putting a release in, starting it.
+//! A version's folder (versions/<id>/ beside the launcher, or the launcher's own
+//! folder for a version marked `ici`): what is installed there, putting a
+//! release in, starting it.
 
 use crate::catalogue::GameVersion;
 use crate::github::{self, Asset, Release};
@@ -16,12 +17,23 @@ pub struct Installation<'a> {
 
 impl<'a> Installation<'a> {
     pub fn new(launcher_folder: &Path, version: &'a GameVersion) -> Self {
-        Installation { version, folder: launcher_folder.join("versions").join(&version.id) }
+        let folder = if version.ici {
+            launcher_folder.to_path_buf()
+        } else {
+            launcher_folder.join("versions").join(&version.id)
+        };
+        Installation { version, folder }
     }
 
-    /// The release tag installed, or None.
+    /// Its exe is there (installed by the launcher or put there by hand).
+    pub fn present(&self) -> bool {
+        !self.version.exe.is_empty() && self.folder.join(&self.version.exe).is_file()
+    }
+
+    /// The release tag installed by the launcher, or None (not there, or there
+    /// without the launcher knowing which release).
     pub fn tag(&self) -> Option<String> {
-        if self.version.exe.is_empty() || !self.folder.join(&self.version.exe).is_file() {
+        if !self.present() {
             return None;
         }
         std::fs::read_to_string(self.folder.join(TAG_FILE)).ok().map(|t| t.trim().to_string())
@@ -53,7 +65,8 @@ impl<'a> Installation<'a> {
     }
 
     /// Starts the version, its disc given in its pc_settings.ini (disc=), the
-    /// file's other lines kept.
+    /// file's other lines kept. No disc: the game finds its own (its ini, or an
+    /// image beside it).
     pub fn play(&self, disc: Option<&String>) -> Result<(), String> {
         if let Some(disc) = disc {
             self.set_disc(disc).map_err(|e| e.to_string())?;
@@ -80,7 +93,7 @@ impl<'a> Installation<'a> {
     }
 }
 
-async fn download(url: &str, file: &Path, progress: &mut impl FnMut(u32)) -> Result<(), String> {
+pub async fn download(url: &str, file: &Path, progress: &mut impl FnMut(u32)) -> Result<(), String> {
     let mut response = github::client().get(url).send().await.map_err(|e| e.to_string())?;
     if !response.status().is_success() {
         return Err(format!("Le téléchargement a répondu {}", response.status()));
@@ -116,6 +129,12 @@ fn extract(zip: &Path, folder: &Path) -> Result<(), String> {
         let Some(inside) = entry.enclosed_name() else { continue };
         let Ok(name) = inside.strip_prefix(top.trim_end_matches('/')) else { continue };
         if name.as_os_str().is_empty() {
+            continue;
+        }
+        // Never the launcher's own files (Lanceur.exe, lanceur.json, .lanceur-*),
+        // as it may share the game's folder.
+        let first = name.components().next().map(|c| c.as_os_str().to_string_lossy().to_lowercase()).unwrap_or_default();
+        if first.starts_with("lanceur") || first.starts_with(".lanceur") {
             continue;
         }
         let target = folder.join(name);
