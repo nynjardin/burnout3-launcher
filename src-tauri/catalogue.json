@@ -13,6 +13,7 @@
       "fichier": "^Burnout3-PC-.*-windows-x64\\.zip$",
       "exe": "burnout3.exe",
       "ici": true,
+      "reglages": true,
       "apports": [
         "Portage PS2 recompilé (base : burnout3-pc de l'amont)",
         "Jeu en LAN sans serveur : salon, recherche des parties, colonne PING",
@@ -30,6 +31,7 @@
       "disque": "ps2_us",
       "fichier": "^Burnout3-PC-.*-windows-x64\\.zip$",
       "exe": "burnout3.exe",
+      "reglages": true,
       "apports": [
         "Portage PS2 recompilé, version de référence",
         "60 images/s, 16:9, pack de textures, PC SETTINGS",

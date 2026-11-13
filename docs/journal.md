@@ -5,6 +5,53 @@ dans les autres fichiers de `docs/`.
 
 ---
 
+suite 8 (lanceur v0.2.0 publié — 2026-11-13)
+
+- L'utilisateur : la version sans PowerShell marche sur l'autre machine (l'antivirus la laisse) ;
+  il demande de commiter et publier.
+- `version` 0.2.0 (`Cargo.toml`, `tauri.conf.json`), compilé sans avertissement : `Lanceur.exe`
+  9 713 664 octets, SHA-256 `E4E9E941…C075F3`, ressource de version 0.2.0 / © 2026 nynjardin.
+- Commit poussé sur `main`, version **`v0.2.0`** publiée (non préversion) avec `Lanceur.exe`.
+
+suite 7 (version lue dans l'exe du jeu ; plus de PowerShell — 2026-11-13)
+
+- Retour de l'utilisateur : lanceur copié dans `I:\Projets\Recomp\Burnout 3\` (son dossier de
+  jeu) → « Mettre à jour » proposé alors que son jeu lui semble plus récent. Cause : sans
+  `.lanceur-version`, toute version publiée paraissait différente. Son `burnout3.exe` (compilé
+  le 13/11 à 03:49, après le dernier commit de jeu de 03:46) dit `FileVersion` `0.8.0-alpha` :
+  le même jeu que `v0.8.0-lan.1`, avant le changement de numéro.
+- Correction : version lue dans l'exe (`GetFileVersionInfoW`), comparée en semver ; mise à jour
+  proposée seulement si la publiée est plus haute ; « Plus récente » sinon ; « Installer vX » si
+  inconnue. Essais : `essai/lan` → `0.8.0-lan.1`, « À jour » ; `essai/alpha` (copie de son exe)
+  → `0.8.0-alpha`, « Mise à jour » (vrai au sens des numéros).
+- Second retour : un antivirus d'une autre machine a supprimé le lanceur. Trouvé : la
+  bibliothèque `open` lançait **PowerShell** pour « Dossier » / « Page » (depuis la v0.1.0), et
+  « Journaux » aussi (suite 6). Remplacés par l'API Windows (`ShellExecuteW`, registre,
+  `GlobalMemoryStatusEx`) ; `open` retiré ; le mot n'apparaît plus dans l'exe. Copyright et
+  éditeur ajoutés à la ressource de version. Defender local : rien. Antivirus en cause : INCONNU.
+
+suite 6 (disque vérifié, carte mémoire, retour arrière, réglages, temps de jeu, journaux — 2026-11-13)
+
+- Idées proposées à l'utilisateur ; ses choix : rien sur le réseau entre PC (doublon avec
+  LanCommander) ; la barre des shaders n'est pas utile (le jeu montre déjà son avancement) ;
+  disque vérifié pour chaque version ; tout le confort validé ; habillage mis de côté.
+  Question « envoyer les journaux où ? » : nulle part, un zip à passer à la main.
+- Rust : `disc.rs` (BOOT2 de SYSTEM.CNF, .iso/.bin/.cue ; Xbox par son volume), `gameini.rs`,
+  `saves.rs`, `journaux.rs` ; `installation.rs` garde les deux derniers zips (vérifiés par
+  taille + SHA-256) et rend le processus du jeu ; `main.rs` : commandes nouvelles, temps de jeu
+  compté dans un fil qui attend la fin du jeu, rien d'installé ni restauré pendant qu'il tourne.
+  Catalogue : champ `reglages` (lan, amont). Dépendance `chrono` (heure locale).
+- **Bogue trouvé à l'essai et corrigé** : `state` gardait le verrou des réglages pendant que
+  `disc_states` le reprenait → page figée au démarrage.
+- Essais dans `essai/lan/` par le port de débogage : vrai ISO reconnu (`SLUS_210.50`, « celui du
+  jeu » depuis `disc=`), `burnout3.exe` refusé comme disque ; réglage écrit puis enlevé, ligne de
+  commentaire gardée, clé `disc` et valeur avec retour à la ligne refusées ; copie, restauration
+  (copie « avant restauration » faite d'abord), nom `../x` refusé ; installation depuis GitHub
+  3,4 s puis depuis le zip gardé 0,6 s, une copie de la carte avant chacune ; Jouer → « En jeu »,
+  jeu arrêté au bout de 16 s → temps compté, message du code -1 ; zip des journaux avec infos
+  de la machine. Captures de la page vérifiées. Compilé sans avertissement (exe 9,8 Mo).
+- Le bouton « Revenir à » n'a pas pu être vu : une seule version publiée.
+
 suite 5 (le lanceur se met à jour lui-même — 2026-11-13)
 
 - Demande de l'utilisateur : un « autoupdater » pour le lanceur.

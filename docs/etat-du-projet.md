@@ -9,7 +9,8 @@
 | Publication de nos versions (Releases du fork) | ✅ `v0.8.0-lan.1` (préversion, 2026-11-13) ; le lanceur la voit et l'installe (vérifié dans `essai/lan/`) |
 | Mise à jour du lanceur par lui-même | ✅ bandeau + remplacement de l'exe + redémarrage, vérifié en local (faux serveur) ; attend le dépôt du lanceur |
 | Dépôt GitHub du lanceur | ✅ `nynjardin/burnout3-launcher` (public) : code poussé sur `main`, **`v0.1.0` publiée** avec `Lanceur.exe` (2026-11-13) |
-| Préparation des shaders depuis le lanceur | ⏳ demande d'abord une option dans le jeu ([contrat-jeu.md](contrat-jeu.md)) |
+| Préparation des shaders depuis le lanceur | ⏸ pas nécessaire : le jeu montre déjà son avancement au lancement (utilisateur, 2026-11-13) |
+| Disque vérifié, carte mémoire (copies, restauration), retour à une version, réglages du jeu, temps de jeu, zip des journaux | ✅ 2026-11-13, essayé dans `essai/lan/` ; **publié en `v0.2.0`** |
 
 ## Décisions de l'utilisateur
 
@@ -17,6 +18,9 @@
 - **Portable** : rien à installer.
 - Plusieurs versions au choix (la nôtre, l'amont, takedawn, Burn3), chacune avec ce qu'elle
   apporte ; la nôtre suit nos mises à jour, les autres affichent les leurs.
+- (2026-11-13) Pas de fonctions réseau entre PC (doublon avec LanCommander) ; pas d'habillage
+  pour l'instant (images de fond, mode compact). Vérification du disque pour **chaque** version
+  (aussi les grisées, quand elles seront proposées).
 - (2026-11-13) Le lanceur sert surtout entre amis : **notre version = le jeu posé à côté du
   lanceur** (pas de copie dans `versions/`) ; **les autres versions grisées** pour l'instant.
 
@@ -34,5 +38,7 @@
    lanceurs `v0.1.0` la proposeront.
    Les lanceurs déjà distribués ne voient une mise à jour qu'à partir de là. Procédure :
    [conception.md](conception.md), « Le lanceur se met à jour lui-même ».
-4. Côté jeu : l'option « préparer les shaders seulement » et l'indicateur
-   ([contrat-jeu.md](contrat-jeu.md)).
+4. ~~Antivirus~~ : la version sans PowerShell passe sur l'autre machine (utilisateur,
+   2026-11-13). À surveiller à chaque version.
+5. ~~Publier le lanceur `v0.2.0`~~ : fait (2026-11-13), à la demande de l'utilisateur. Les
+   lanceurs `v0.1.0` la proposent par leur bandeau. Prochaine : `v0.2.1` / `v0.3.0`.

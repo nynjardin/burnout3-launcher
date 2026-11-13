@@ -7,3 +7,8 @@ essai/
 versions/
 lanceur.json
 .lanceur-webview/
+
+# Copies of memory cards, zips kept for going back, exported logs: a player's.
+sauvegardes/
+journaux/
+.lanceur-archives/

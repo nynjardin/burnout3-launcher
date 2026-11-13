@@ -100,7 +100,7 @@ fn beside(exe: &Path, suffix: &str) -> PathBuf {
 }
 
 /// The size GitHub gives, and its SHA-256 when it gives one ("sha256:<hex>").
-fn verify(file: &Path, asset: &Asset) -> Result<(), String> {
+pub fn verify(file: &Path, asset: &Asset) -> Result<(), String> {
     let size = std::fs::metadata(file).map_err(|e| e.to_string())?.len();
     if size != asset.size {
         return Err(format!("Téléchargement incomplet ({size} octets sur {}).", asset.size));

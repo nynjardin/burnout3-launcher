@@ -10,6 +10,31 @@
 - **Jouer** : si un disque est choisi dans le lanceur, écrit son chemin dans les réglages de la
   version (`disc=`) ; sinon le jeu prend le sien. Lance son exe.
 - Télécharge **seulement** le zip de la version : ni disque, ni sauvegardes, ni pack de textures.
+- **Version présente** : lue dans l'exe du jeu (`FileVersion`), sinon dans `.lanceur-version`.
+  « Mettre à jour » seulement si la dernière publiée est **plus haute** (semver, `v` ignoré) ;
+  plus basse : « Plus récente », rien proposé ; inconnue : « Installer vX ».
+- **Revenir en arrière** : chaque version publiée des notes a un bouton « Installer celle-ci »
+  / « Revenir à celle-ci » ; les deux derniers zips installés sont gardés, et « ↩ Revenir à vX »
+  réinstalle l'avant-dernier **sans internet**. Les fichiers ajoutés par la version plus récente
+  restent (seuls ceux du zip sont écrits).
+- **Carte mémoire** (`memcard/` de la version) : copiée avant chaque installation et avant
+  chaque restauration, ou à la main ; « Restaurer » (deux clics) la remet. Les 15 copies les plus
+  récentes sont gardées. Refusé pendant que le jeu tourne.
+- **Réglages du jeu** (versions marquées `reglages` dans le catalogue : moteur du portage PS2) :
+  les lignes de PC SETTINGS du jeu (résolution, format, plein écran, images/s, synchro,
+  régularité, VRR, pack de textures, GPU à fond) écrites dans son `pc_settings.ini` ; « Par
+  défaut du jeu » enlève la ligne. Les autres lignes du fichier restent telles quelles.
+- **Disque vérifié** : pour chaque sorte de disque d'une version proposée, le lanceur montre
+  l'image utilisée (celle choisie dans le lanceur, sinon celle du jeu : `disc=` de son
+  `pc_settings.ini` ou une image posée à côté) et ce qu'elle est : PS2 US = `BOOT2` de
+  `SYSTEM.CNF` égal à `SLUS_210.50` (la vérification du jeu lui-même) ; Xbox = volume
+  `MICROSOFT*XBOX*MEDIA` (titre non vérifié). `.iso`, `.bin` brut (2352 octets, mode 1/2), `.cue`.
+- **Temps de jeu** : le lanceur attend la fin du jeu qu'il a lancé (le jeu attend lui-même sa
+  version SSE4) et additionne la durée, le nombre de parties et la date de la dernière dans
+  `lanceur.json`. Une fin avec un code autre que 0 affiche un message qui renvoie à « Journaux ».
+- **Journaux** : un zip (`burnout3*.log`, `pc_settings.ini`, `infos.txt` : versions, Windows,
+  processeur, mémoire, cartes graphiques et pilotes) dans `journaux/`, montré dans
+  l'Explorateur. **Rien n'est envoyé** : le joueur passe le fichier lui-même (Discord…).
 
 ## Le dossier portable — CONFIRMÉ (choix de l'utilisateur : rien à installer)
 
@@ -17,8 +42,12 @@
 <le dossier du jeu, partagé entre amis>/
   burnout3.exe, ...     NOTRE version : le jeu lui-même (champ « ici » du catalogue)
   Lanceur.exe
-  lanceur.json          réglages : chemins des disques (facultatifs), dernière version choisie
+  lanceur.json          réglages : chemins des disques (facultatifs), dernière version choisie,
+                        temps de jeu par version
   .lanceur-version      étiquette de notre version installée par le lanceur
+  .lanceur-archives/<id>/<étiquette>.zip   les deux derniers zips installés (retour sans internet)
+  sauvegardes/<id>/<date>_<motif>/         copies de la carte mémoire
+  journaux/             zips de journaux préparés par le bouton « Journaux »
   .lanceur-webview/     données du moteur web de la fenêtre
   catalogue.json        (facultatif) remplace le catalogue intégré à l'exe
   versions/
@@ -40,8 +69,14 @@ Pas de registre, pas de droits d'administrateur, rien hors de ce dossier.
   - Rust (`src-tauri/`) : `reqwest` (rustls) pour GitHub et les téléchargements, `zip`,
     `rfd` (choix d'un fichier), `open` (dossiers, pages).
   - Page (`ui/`) : HTML/CSS/JS sans outil de construction ; appelle les commandes Rust
-    (`state`, `releases`, `install`, `play`, `choose_disc`, `remember`, `open_folder`,
-    `open_page`, `launcher_update`, `update_launcher`) ; l'avancement d'une installation arrive en événements `progression`.
+    (`state`, `releases`, `install`, `install_archived`, `play`, `choose_disc`, `forget_disc`,
+    `discs`, `remember`, `open_folder`, `open_page`, `launcher_update`, `update_launcher`,
+    `game_settings`, `set_game_setting`, `saves`, `backup_now`, `restore_save`, `open_saves`,
+    `export_logs`) ; l'avancement d'une installation arrive en événements `progression`, la
+    fin d'une partie en événement `partie`.
+  - Modules : `winfo.rs` (API Windows : version d'un exe, infos du PC par le registre, ouvrir
+    un dossier ou une page par `ShellExecuteW`), `disc.rs` (identifier une image), `gameini.rs` (`pc_settings.ini`), `saves.rs`
+    (carte mémoire), `journaux.rs` (zip des journaux), `installation.rs` (zips gardés).
   - **Portable** : la fenêtre est créée dans le code avec `data_directory` =
     `.lanceur-webview/` à côté de l'exe (sinon WebView2 écrirait dans `%LOCALAPPDATA%`).
   - Windows : il faut le moteur WebView2 (présent sur Windows 11 et les Windows 10 à jour).
@@ -51,9 +86,24 @@ Pas de registre, pas de droits d'administrateur, rien hors de ce dossier.
 - **Catalogue** : un `catalogue.json` intégré à l'exe ; un `catalogue.json` posé à côté le
   remplace (pour corriger une fiche sans republier). Plus tard : le relire depuis le dépôt
   du lanceur.
-- **Mise à jour sûre** : téléchargement dans un fichier temporaire, extraction fichier par
-  fichier, étiquette installée écrite à la fin (`.lanceur-version`). Une mise à jour ratée
+- **Mise à jour sûre** : téléchargement dans `.lanceur-archives/<id>/<étiquette>.part`, taille
+  et SHA-256 (`digest` de GitHub) vérifiés, puis renommé en `.zip` (gardé) ; extraction fichier
+  par fichier, étiquette installée écrite à la fin (`.lanceur-version`). Une mise à jour ratée
   laisse l'étiquette d'avant : le lanceur la reproposera.
+
+## Antivirus — HYPOTHÈSE
+
+- 2026-11-13 : un antivirus d'une autre machine a supprimé le lanceur (lequel, et quel nom de
+  menace : INCONNU). Defender de la machine de développement ne trouve rien. **La version sans
+  PowerShell passe sur cette autre machine** (CONFIRMÉ par l'utilisateur, publiée en `v0.2.0`).
+- Un exe **non signé**, peu téléchargé, qui télécharge des fichiers, se remplace lui-même et
+  lance d'autres programmes ressemble à un « dropper » pour les détections heuristiques.
+- Fait : **plus aucun appel à PowerShell** (la bibliothèque `open` en lançait un à chaque
+  « Dossier » / « Page » ; « Journaux » aussi) — tout passe par l'API Windows ; copyright et
+  éditeur dans la ressource de version de l'exe.
+- Restent possibles : signaler un faux positif à l'éditeur de l'antivirus ; signer l'exe
+  (certificat de signature de code : payant, ou SignPath Foundation, gratuit pour un projet
+  libre).
 
 ## Le lanceur se met à jour lui-même — CONFIRMÉ (essai local 2026-11-13)
 
@@ -78,5 +128,8 @@ Pas de registre, pas de droits d'administrateur, rien hors de ce dossier.
 
 ## Plus tard
 
-- Barre de progression des shaders après une mise à jour (voir [contrat-jeu.md](contrat-jeu.md)).
+- Barre de progression des shaders : l'utilisateur la voit déjà dans le jeu au lancement
+  (2026-11-13) ; pas besoin côté lanceur pour l'instant.
+- De côté (décision de l'utilisateur, 2026-11-13) : tout ce qui touche au réseau entre PC (fait
+  doublon avec LanCommander) et l'habillage (images de fond, mode compact).
 - Takedawn quand son mode portable existera (annoncé en 0.2.2).

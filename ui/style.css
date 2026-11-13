@@ -127,7 +127,8 @@ button.ghost:hover:not(:disabled) { color: var(--text); border-color: var(--mute
 }
 .hero h1 { margin: 8px 0 12px; font-size: 26px; line-height: 1.15; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.facts { display: flex; gap: 28px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.facts div span:last-child { white-space: nowrap; }
 .facts div { display: flex; flex-direction: column; }
 .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
 
@@ -180,3 +181,44 @@ button.ghost:hover:not(:disabled) { color: var(--text); border-color: var(--mute
 
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-thumb { background: #2b2f3a; border-radius: 10px; border: 2px solid var(--bg); }
+
+/* --- small buttons, two-click confirmation --- */
+button.small { padding: 5px 10px; font-size: 12px; }
+button.armed { border-color: var(--warn); color: var(--warn); }
+.actions #rollback { align-self: stretch; }
+
+/* --- panels with a head --- */
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panel-head h2 { margin: 0; }
+.panel-actions { display: flex; gap: 6px; }
+.hint { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+
+/* --- game settings --- */
+.settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px 18px; }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.setting span { color: #cfd3dc; }
+.setting select {
+  font: inherit; font-size: 13px;
+  background: var(--bg-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 4px 6px; min-width: 130px;
+}
+.setting select:focus { outline: 1px solid var(--accent); }
+
+/* --- memory card copies --- */
+.saves { display: flex; flex-direction: column; gap: 4px; }
+.save { display: grid; grid-template-columns: 150px 1fr 70px auto; align-items: center; gap: 10px; padding: 4px 0; border-top: 1px solid var(--line); }
+.save:first-child { border-top: 0; }
+.save-date { font-variant-numeric: tabular-nums; }
+.save-why, .save-size { color: var(--muted); font-size: 12px; }
+.save-size { text-align: right; }
+
+/* --- release actions --- */
+.release-head button { margin-left: auto; }
+
+/* --- disc check --- */
+.disc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.disc-text .path { flex: none; }
+.check { font-size: 11px; }
+.check.good { color: var(--ok); }
+.check.bad { color: var(--warn); }

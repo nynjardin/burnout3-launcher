@@ -1,6 +1,7 @@
 //! A version's folder (versions/<id>/ beside the launcher, or the launcher's own
 //! folder for a version marked `ici`): what is installed there, putting a
-//! release in, starting it.
+//! release in, starting it. The zips installed last are kept in
+//! .lanceur-archives/<id>/ beside the launcher: going back needs no internet.
 
 use crate::catalogue::GameVersion;
 use crate::github::{self, Asset, Release};
@@ -9,10 +10,13 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 const TAG_FILE: &str = ".lanceur-version";
+/// The zips kept: the one installed and the one before.
+const ARCHIVES_KEPT: usize = 2;
 
 pub struct Installation<'a> {
     version: &'a GameVersion,
     pub folder: PathBuf,
+    archives: PathBuf,
 }
 
 impl<'a> Installation<'a> {
@@ -22,7 +26,8 @@ impl<'a> Installation<'a> {
         } else {
             launcher_folder.join("versions").join(&version.id)
         };
-        Installation { version, folder }
+        let archives = launcher_folder.join(".lanceur-archives").join(&version.id);
+        Installation { version, folder, archives }
     }
 
     /// Its exe is there (installed by the launcher or put there by hand).
@@ -30,13 +35,16 @@ impl<'a> Installation<'a> {
         !self.version.exe.is_empty() && self.folder.join(&self.version.exe).is_file()
     }
 
-    /// The release tag installed by the launcher, or None (not there, or there
-    /// without the launcher knowing which release).
+    /// The version there: the exe's own (its FileVersion, which the game takes
+    /// from its game.json), else the tag the launcher installed last; None when
+    /// not there or unknown.
     pub fn tag(&self) -> Option<String> {
         if !self.present() {
             return None;
         }
-        std::fs::read_to_string(self.folder.join(TAG_FILE)).ok().map(|t| t.trim().to_string())
+        crate::winfo::file_version(&self.folder.join(&self.version.exe))
+            .or_else(|| std::fs::read_to_string(self.folder.join(TAG_FILE)).ok().map(|t| t.trim().to_string()))
+            .filter(|t| !t.is_empty())
     }
 
     pub fn asset_of<'r>(&self, release: &'r Release) -> Option<&'r Asset> {
@@ -47,49 +55,96 @@ impl<'a> Installation<'a> {
         release.assets.iter().find(|a| pattern.is_match(&a.name))
     }
 
-    /// Downloads the release's zip and writes its files over the folder's: only
-    /// the files it carries (saves, settings, caches, texture packs stay). The
-    /// tag is written last, so a broken update is offered again.
+    /// Downloads the release's zip (or takes the one kept) and writes its files
+    /// over the folder's: only the files it carries (saves, settings, caches,
+    /// texture packs stay). The tag is written last, so a broken update is
+    /// offered again.
     pub async fn install(&self, release: &Release, mut progress: impl FnMut(u32)) -> Result<(), String> {
         let asset = self.asset_of(release).ok_or("Cette version n'a pas de fichier à installer.")?;
-        std::fs::create_dir_all(&self.folder).map_err(|e| e.to_string())?;
-        let zip = self.folder.join(".telechargement.zip");
-        let result = async {
-            download(&asset.url, &zip, &mut progress).await?;
-            extract(&zip, &self.folder)?;
-            std::fs::write(self.folder.join(TAG_FILE), &release.tag).map_err(|e| e.to_string())
+        let zip = self.archive_of(&release.tag)?;
+        if crate::self_update::verify(&zip, asset).is_err() {
+            std::fs::create_dir_all(&self.archives).map_err(|e| e.to_string())?;
+            let part = zip.with_extension("part");
+            let fetched = async {
+                download(&asset.url, &part, &mut progress).await?;
+                crate::self_update::verify(&part, asset)?;
+                std::fs::rename(&part, &zip).map_err(|e| e.to_string())
+            }
+            .await;
+            if fetched.is_err() {
+                let _ = std::fs::remove_file(&part);
+            }
+            fetched?;
         }
-        .await;
-        let _ = std::fs::remove_file(&zip);
-        result
+        progress(100);
+        self.install_zip(&zip, &release.tag)
+    }
+
+    /// Installs a zip kept from before (no internet needed).
+    pub fn install_archived(&self, tag: &str) -> Result<(), String> {
+        let zip = self.archive_of(tag)?;
+        if !zip.is_file() {
+            return Err(format!("Le zip de {tag} n'est plus gardé."));
+        }
+        self.install_zip(&zip, tag)
+    }
+
+    /// The tags whose zip is kept, the last used first.
+    pub fn archived(&self) -> Vec<String> {
+        let mut kept: Vec<(std::time::SystemTime, String)> = std::fs::read_dir(&self.archives)
+            .map(|entries| {
+                entries
+                    .flatten()
+                    .filter_map(|e| {
+                        let path = e.path();
+                        if path.extension()? != "zip" {
+                            return None;
+                        }
+                        let when = e.metadata().and_then(|m| m.modified()).ok()?;
+                        Some((when, path.file_stem()?.to_string_lossy().to_string()))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        kept.sort_by(|a, b| b.0.cmp(&a.0));
+        kept.into_iter().map(|(_, tag)| tag).collect()
+    }
+
+    fn archive_of(&self, tag: &str) -> Result<PathBuf, String> {
+        let safe = !tag.is_empty()
+            && !tag.starts_with('.')
+            && tag.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_' | '+'));
+        if !safe {
+            return Err(format!("Étiquette de version inattendue : {tag}"));
+        }
+        Ok(self.archives.join(format!("{tag}.zip")))
+    }
+
+    fn install_zip(&self, zip: &Path, tag: &str) -> Result<(), String> {
+        std::fs::create_dir_all(&self.folder).map_err(|e| e.to_string())?;
+        extract(zip, &self.folder)?;
+        std::fs::write(self.folder.join(TAG_FILE), tag).map_err(|e| e.to_string())?;
+        // The zip used last is kept; the oldest go.
+        if let Ok(file) = std::fs::File::options().write(true).open(zip) {
+            let _ = file.set_modified(std::time::SystemTime::now());
+        }
+        for old in self.archived().into_iter().skip(ARCHIVES_KEPT) {
+            let _ = std::fs::remove_file(self.archives.join(format!("{old}.zip")));
+        }
+        Ok(())
     }
 
     /// Starts the version, its disc given in its pc_settings.ini (disc=), the
     /// file's other lines kept. No disc: the game finds its own (its ini, or an
-    /// image beside it).
-    pub fn play(&self, disc: Option<&String>) -> Result<(), String> {
+    /// image beside it). The game's process, to wait for its end.
+    pub fn play(&self, disc: Option<&String>) -> Result<std::process::Child, String> {
         if let Some(disc) = disc {
-            self.set_disc(disc).map_err(|e| e.to_string())?;
+            crate::gameini::set(&self.folder, "disc", Some(disc)).map_err(|e| e.to_string())?;
         }
         std::process::Command::new(self.folder.join(&self.version.exe))
             .current_dir(&self.folder)
             .spawn()
-            .map(|_| ())
             .map_err(|e| e.to_string())
-    }
-
-    fn set_disc(&self, disc: &str) -> std::io::Result<()> {
-        let ini = self.folder.join("pc_settings.ini");
-        let mut lines: Vec<String> = match std::fs::read_to_string(&ini) {
-            Ok(text) => text.lines().map(str::to_string).collect(),
-            Err(_) => vec!["# The PC port's settings (PC SETTINGS in the main menu).".into()],
-        };
-        let line = format!("disc={disc}");
-        match lines.iter().position(|l| l.starts_with("disc=")) {
-            Some(at) => lines[at] = line,
-            None => lines.push(line),
-        }
-        std::fs::write(&ini, lines.join("\r\n") + "\r\n")
     }
 }
 

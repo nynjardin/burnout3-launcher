@@ -12,6 +12,21 @@ pub struct Settings {
     /// The version shown last.
     #[serde(default)]
     pub selected: Option<String>,
+    /// Version id -> its time played.
+    #[serde(default)]
+    pub jeu: HashMap<String, PlayStats>,
+}
+
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct PlayStats {
+    /// Seconds played, every session added.
+    #[serde(default)]
+    pub secondes: u64,
+    #[serde(default)]
+    pub parties: u32,
+    /// The last session's start, Unix seconds.
+    #[serde(default)]
+    pub derniere: Option<i64>,
 }
 
 impl Settings {

@@ -30,14 +30,17 @@
           <div class="facts">
             <div><span class="label" id="installed-label">Installée</span><span id="installed">—</span></div>
             <div><span class="label">Dernière</span><span id="latest">…</span></div>
+            <div id="playtime-box" hidden><span class="label">Temps de jeu</span><span id="playtime"></span></div>
           </div>
         </div>
         <div class="actions">
           <button class="primary" id="install"></button>
+          <button class="ghost small" id="rollback" hidden></button>
           <button class="play" id="play">▶ Jouer</button>
           <div class="secondary">
             <button class="ghost" id="folder">Dossier</button>
-            <button class="ghost" id="page">Page du projet ↗</button>
+            <button class="ghost" id="logs" title="Prépare un zip des journaux du jeu, à envoyer pour comprendre un problème">Journaux</button>
+            <button class="ghost" id="page">Page ↗</button>
           </div>
         </div>
       </section>
@@ -51,6 +54,26 @@
         <p class="remark" id="remark" hidden></p>
       </section>
 
+      <section class="panel" id="settings-panel" hidden>
+        <div class="panel-head">
+          <h2>Réglages du jeu</h2>
+          <span class="hint" id="settings-hint">Pris en compte au prochain lancement.</span>
+        </div>
+        <div class="settings" id="settings"></div>
+      </section>
+
+      <section class="panel" id="saves-panel" hidden>
+        <div class="panel-head">
+          <h2>Carte mémoire</h2>
+          <div class="panel-actions">
+            <button class="ghost small" id="backup-now">Sauvegarder maintenant</button>
+            <button class="ghost small" id="saves-folder">Dossier</button>
+          </div>
+        </div>
+        <p class="hint">Une copie est faite avant chaque installation et avant chaque restauration.</p>
+        <div class="saves" id="saves"></div>
+      </section>
+
       <section class="panel">
         <h2>Notes de version</h2>
         <div id="notes" class="notes"></div>
@@ -61,12 +84,20 @@
   <footer class="discs">
     <div class="disc">
       <span class="label">Disque PS2 US</span>
-      <span class="path" id="disc-ps2_us">aucun</span>
+      <div class="disc-text">
+        <span class="path" id="disc-ps2_us">aucun</span>
+        <span class="check" id="check-ps2_us"></span>
+      </div>
+      <button class="ghost" data-forget="ps2_us" hidden title="Revenir au disque que le jeu trouve lui-même">×</button>
       <button class="ghost" data-disc="ps2_us">Choisir…</button>
     </div>
     <div class="disc">
       <span class="label">Disque Xbox US</span>
-      <span class="path" id="disc-xbox_us">aucun</span>
+      <div class="disc-text">
+        <span class="path" id="disc-xbox_us">aucun</span>
+        <span class="check" id="check-xbox_us"></span>
+      </div>
+      <button class="ghost" data-forget="xbox_us" hidden title="Revenir au disque que le jeu trouve lui-même">×</button>
       <button class="ghost" data-disc="xbox_us">Choisir…</button>
     </div>
   </footer>

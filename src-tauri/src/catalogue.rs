@@ -22,6 +22,10 @@ pub struct GameVersion {
     /// versions/<id>/: the launcher is dropped into the game folder shared with friends.
     #[serde(default)]
     pub ici: bool,
+    /// Its pc_settings.ini has the PC port's rows (resolution, aspect...):
+    /// the launcher shows them (the PS2 port's engine, ours and upstream's).
+    #[serde(default)]
+    pub reglages: bool,
     /// False: shown greyed out, not offered yet.
     #[serde(default = "yes")]
     pub active: bool,
